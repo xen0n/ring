@@ -57,7 +57,7 @@ if [[ ! -d $ANDROID_NDK_INSTALL_DIR/sysroot/usr/include/arm-linux-androideabi ]]
 
   ./android-ndk-r${ANDROID_NDK_VERSION}/build/tools/make_standalone_toolchain.py \
 		 --force \
-		 --arch arm \
+		 --arch armv7-a \
 		 --api 18 \
 		 --unified-headers \
 		 --install-dir ${ANDROID_NDK_INSTALL_DIR}
