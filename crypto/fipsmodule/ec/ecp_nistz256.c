@@ -196,6 +196,162 @@ void GFp_nistz256_point_add(P256_POINT *r, const P256_POINT *a, const P256_POINT
   limbs_copy(r->Y, res_y, P256_LIMBS);
   limbs_copy(r->Z, res_z, P256_LIMBS);
 }
+
+/* Include more reference implementation code for arches lacking assembly
+ * optimizations */
+#ifdef OPENSSL_MIPS64
+
+static inline void elem_add(Limb r[P256_LIMBS], const Limb a[P256_LIMBS],
+                            const Limb b[P256_LIMBS]) {
+  LIMBS_add_mod(r, a, b, Q, P256_LIMBS);
+}
+
+static inline void elem_mul_by_3(Limb r[P256_LIMBS], const Limb a[P256_LIMBS]) {
+  Limb tmp[P256_LIMBS];
+  elem_mul_by_2(tmp, a);
+  LIMBS_add_mod(r, tmp, a, Q, P256_LIMBS);
+}
+
+static inline BN_ULONG _bn_ulong_is_zero(BN_ULONG in)
+{
+  in |= (0 - in);
+  in = ~in;
+  in >>= BN_BITS2 - 1;
+  return in;
+}
+
+/* Point double: r = 2*a */
+void GFp_nistz256_point_double(P256_POINT *r, const P256_POINT *a)
+{
+  BN_ULONG S[P256_LIMBS];
+  BN_ULONG M[P256_LIMBS];
+  BN_ULONG Zsqr[P256_LIMBS];
+  BN_ULONG tmp0[P256_LIMBS];
+
+  const BN_ULONG *in_x = a->X;
+  const BN_ULONG *in_y = a->Y;
+  const BN_ULONG *in_z = a->Z;
+
+  BN_ULONG *res_x = r->X;
+  BN_ULONG *res_y = r->Y;
+  BN_ULONG *res_z = r->Z;
+
+  elem_mul_by_2(S, in_y);
+
+  elem_sqr_mont(Zsqr, in_z);
+
+  elem_sqr_mont(S, S);
+
+  elem_mul_mont(res_z, in_z, in_y);
+  elem_mul_by_2(res_z, res_z);
+
+  elem_add(M, in_x, Zsqr);
+  elem_sub(Zsqr, in_x, Zsqr);
+
+  elem_sqr_mont(res_y, S);
+  elem_div_by_2(res_y, res_y);
+
+  elem_mul_mont(M, M, Zsqr);
+  elem_mul_by_3(M, M);
+
+  elem_mul_mont(S, S, in_x);
+  elem_mul_by_2(tmp0, S);
+
+  elem_sqr_mont(res_x, M);
+
+  elem_sub(res_x, res_x, tmp0);
+  elem_sub(S, S, res_x);
+
+  elem_mul_mont(S, S, M);
+  elem_sub(res_y, S, res_y);
+}
+
+/* Point addition when b is known to be affine: r = a+b */
+void GFp_nistz256_point_add_affine(P256_POINT *r,
+                                          const P256_POINT *a,
+                                          const P256_POINT_AFFINE *b)
+{
+  BN_ULONG U2[P256_LIMBS], S2[P256_LIMBS];
+  BN_ULONG Z1sqr[P256_LIMBS];
+  BN_ULONG H[P256_LIMBS], R[P256_LIMBS];
+  BN_ULONG Hsqr[P256_LIMBS];
+  BN_ULONG Rsqr[P256_LIMBS];
+  BN_ULONG Hcub[P256_LIMBS];
+
+  BN_ULONG res_x[P256_LIMBS];
+  BN_ULONG res_y[P256_LIMBS];
+  BN_ULONG res_z[P256_LIMBS];
+
+  BN_ULONG in1infty, in2infty;
+
+  const BN_ULONG *in1_x = a->X;
+  const BN_ULONG *in1_y = a->Y;
+  const BN_ULONG *in1_z = a->Z;
+
+  const BN_ULONG *in2_x = b->X;
+  const BN_ULONG *in2_y = b->Y;
+
+  /*
+   * Infinity in encoded as (,,0)
+   */
+  in1infty = (in1_z[0] | in1_z[1] | in1_z[2] | in1_z[3]);
+  if (P256_LIMBS == 8)
+    in1infty |= (in1_z[4] | in1_z[5] | in1_z[6] | in1_z[7]);
+
+  /*
+   * In affine representation we encode infinity as (0,0), which is
+   * not on the curve, so it is OK
+   */
+  in2infty = (in2_x[0] | in2_x[1] | in2_x[2] | in2_x[3] |
+              in2_y[0] | in2_y[1] | in2_y[2] | in2_y[3]);
+  if (P256_LIMBS == 8)
+    in2infty |= (in2_x[4] | in2_x[5] | in2_x[6] | in2_x[7] |
+                 in2_y[4] | in2_y[5] | in2_y[6] | in2_y[7]);
+
+  in1infty = _bn_ulong_is_zero(in1infty);
+  in2infty = _bn_ulong_is_zero(in2infty);
+
+  elem_sqr_mont(Z1sqr, in1_z);        /* Z1^2 */
+
+  elem_mul_mont(U2, in2_x, Z1sqr);    /* U2 = X2*Z1^2 */
+  elem_sub(H, U2, in1_x);             /* H = U2 - U1 */
+
+  elem_mul_mont(S2, Z1sqr, in1_z);    /* S2 = Z1^3 */
+
+  elem_mul_mont(res_z, H, in1_z);     /* Z3 = H*Z1*Z2 */
+
+  elem_mul_mont(S2, S2, in2_y);       /* S2 = Y2*Z1^3 */
+  elem_sub(R, S2, in1_y);             /* R = S2 - S1 */
+
+  elem_sqr_mont(Hsqr, H);             /* H^2 */
+  elem_sqr_mont(Rsqr, R);             /* R^2 */
+  elem_mul_mont(Hcub, Hsqr, H);       /* H^3 */
+
+  elem_mul_mont(U2, in1_x, Hsqr);     /* U1*H^2 */
+  elem_mul_by_2(Hsqr, U2);            /* 2*U1*H^2 */
+
+  elem_sub(res_x, Rsqr, Hsqr);
+  elem_sub(res_x, res_x, Hcub);
+  elem_sub(H, U2, res_x);
+
+  elem_mul_mont(S2, in1_y, Hcub);
+  elem_mul_mont(H, H, R);
+  elem_sub(res_y, H, S2);
+
+  copy_conditional(res_x, in2_x, in1infty);
+  copy_conditional(res_x, in1_x, in2infty);
+
+  copy_conditional(res_y, in2_y, in1infty);
+  copy_conditional(res_y, in1_y, in2infty);
+
+  copy_conditional(res_z, ONE, in1infty);
+  copy_conditional(res_z, in1_z, in2infty);
+
+  limbs_copy(r->X, res_x, P256_LIMBS);
+  limbs_copy(r->Y, res_y, P256_LIMBS);
+  limbs_copy(r->Z, res_z, P256_LIMBS);
+}
+#endif
 #endif
 
 /* r = p * p_scalar */
