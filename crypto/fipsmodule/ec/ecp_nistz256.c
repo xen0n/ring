@@ -289,6 +289,12 @@ static inline void elem_div_by_2(Limb r[P256_LIMBS], const Limb a[P256_LIMBS]) {
   copy_conditional(r, adjusted, is_odd);
 }
 
+void GFp_nistz256_add(Limb r[P256_LIMBS], const Limb a[P256_LIMBS],
+                      const Limb b[P256_LIMBS])
+{
+  elem_add(r, a, b);
+}
+
 /* Point double: r = 2*a */
 void GFp_nistz256_point_double(P256_POINT *r, const P256_POINT *a)
 {
