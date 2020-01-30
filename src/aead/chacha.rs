@@ -214,7 +214,7 @@ mod tests {
 
         // Do not test offset buffers for x86 and ARM architectures (see above
         // for rationale).
-        let max_offset = if cfg!(any(target_arch = "x86", target_arch = "arm")) {
+        let max_offset = if cfg!(any(target_arch = "x86", target_arch = "arm", target_arch = "mips64")) {
             0
         } else {
             259
