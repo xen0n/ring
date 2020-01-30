@@ -55,7 +55,7 @@ void GFp_nistz256_neg(Elem r, const Elem a) {
 
 static inline void elem_mul_mont(Elem r, const Elem a, const Elem b) {
   static const BN_ULONG Q_N0[] = {
-    BN_MONT_CTX_N0(0x1, 0x1)
+    BN_MONT_CTX_N0(0x0, 0x1)
   };
   /* XXX: Not (clearly) constant-time; inefficient.*/
   GFp_bn_mul_mont(r, a, b, Q, Q_N0, P256_LIMBS);
