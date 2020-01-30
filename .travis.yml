@@ -19,7 +19,7 @@ matrix:
     - env: TARGET_X=mips64el-unknown-linux-gnuabi64 CC_X=mips64el-linux-gnuabi64-gcc FEATURES_X= MODE_X=DEBUG KCOV=0 RUST_X=stable
       rust: stable
       os: linux
-      dist: xenial
+      dist: bionic
       addons:
         apt:
           packages:
@@ -31,7 +31,7 @@ matrix:
     - env: TARGET_X=mips64el-unknown-linux-gnuabi64 CC_X=mips64el-linux-gnuabi64-gcc FEATURES_X= MODE_X=RELWITHDEBINFO KCOV=0 RUST_X=stable
       rust: stable
       os: linux
-      dist: xenial
+      dist: bionic
       addons:
         apt:
           packages:
@@ -43,7 +43,7 @@ matrix:
     - env: TARGET_X=mips64el-unknown-linux-gnuabi64 CC_X=mips64el-linux-gnuabi64-gcc FEATURES_X= MODE_X=DEBUG KCOV=0 RUST_X=nightly
       rust: nightly
       os: linux
-      dist: xenial
+      dist: bionic
       addons:
         apt:
           packages:
@@ -55,7 +55,7 @@ matrix:
     - env: TARGET_X=mips64el-unknown-linux-gnuabi64 CC_X=mips64el-linux-gnuabi64-gcc FEATURES_X= MODE_X=RELWITHDEBINFO KCOV=0 RUST_X=nightly
       rust: nightly
       os: linux
-      dist: xenial
+      dist: bionic
       addons:
         apt:
           packages:
@@ -67,7 +67,7 @@ matrix:
     - env: TARGET_X=mips64el-unknown-linux-gnuabi64 CC_X=mips64el-linux-gnuabi64-gcc FEATURES_X= MODE_X=DEBUG KCOV=0 RUST_X=beta
       rust: beta
       os: linux
-      dist: xenial
+      dist: bionic
       addons:
         apt:
           packages:
@@ -79,7 +79,7 @@ matrix:
     - env: TARGET_X=mips64el-unknown-linux-gnuabi64 CC_X=mips64el-linux-gnuabi64-gcc FEATURES_X= MODE_X=RELWITHDEBINFO KCOV=0 RUST_X=beta
       rust: beta
       os: linux
-      dist: xenial
+      dist: bionic
       addons:
         apt:
           packages:
