@@ -166,7 +166,7 @@ def format_entry(os, target, compiler, rust, mode, features):
         sources = sorted(list(set(sources_with_dups)))
         dist = "trusty"
         if arch in ["mips64el"]:
-            dist = "xenial"
+            dist = "bionic"
         template += """
       dist: %s""" % dist
 
