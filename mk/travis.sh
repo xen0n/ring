@@ -48,12 +48,14 @@ if [[ ! -z "${ANDROID_ABI-}" ]]; then
   rustup default
 fi
 
-if [[ "$TRAVIS_DIST" == "trusty" && "$TARGET_X" =~ ^(arm|aarch64|mips) && ! "$TARGET_X" =~ android ]]; then
-  # We need a newer QEMU than Travis has.
-  # sudo is needed until the PPA and its packages are whitelisted.
-  # See https://github.com/travis-ci/apt-source-whitelist/issues/271
-  sudo add-apt-repository ppa:pietro-monteiro/qemu-backport -y
-  sudo apt-get update -qq
+if [[ "$TARGET_X" =~ ^(arm|aarch64|mips) && ! "$TARGET_X" =~ android ]]; then
+  if [[ "$TRAVIS_DIST" == "trusty" ]]; then
+    # We need a newer QEMU than Travis has.
+    # sudo is needed until the PPA and its packages are whitelisted.
+    # See https://github.com/travis-ci/apt-source-whitelist/issues/271
+    sudo add-apt-repository ppa:pietro-monteiro/qemu-backport -y
+    sudo apt-get update -qq
+  fi
   sudo apt-get install --no-install-recommends binfmt-support qemu-user-binfmt -y
 fi
 
