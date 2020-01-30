@@ -1120,7 +1120,12 @@ mod tests {
                     let formatted = format!("{:016x}", actual[ops.num_limbs - j - 1]);
                     s.push_str(&formatted);
                 }
-                panic!("Actual != Expected,\nActual = {}", s);
+                let mut t = alloc::string::String::new();
+                for j in 0..ops.num_limbs {
+                    let formatted = format!("{:016x}", expected[ops.num_limbs - j - 1]);
+                    t.push_str(&formatted);
+                }
+                panic!("Actual != Expected,\nActual = {}\nExpected = {}", s, t);
             }
         }
     }
