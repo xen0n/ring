@@ -46,6 +46,7 @@ compilers = {
     "aarch64-linux-android" : [ "aarch64-linux-android21-clang" ],
     "armv7-linux-androideabi" : [ "armv7a-linux-androideabi18-clang" ],
     "arm-unknown-linux-gnueabihf" : [ "arm-linux-gnueabihf-gcc" ],
+    "mips64-unknown-linux-gnuabi64": [ "mips64-linux-gnuabi64-gcc" ],
     "mips64el-unknown-linux-gnuabi64": [ "mips64el-linux-gnuabi64-gcc" ],
     "i686-unknown-linux-gnu" : linux_compilers,
     "x86_64-unknown-linux-gnu" : linux_compilers,
@@ -79,6 +80,7 @@ targets = {
         "aarch64-unknown-linux-gnu",
         "i686-unknown-linux-gnu",
         "arm-unknown-linux-gnueabihf",
+        "mips64-unknown-linux-gnuabi64",
         "mips64el-unknown-linux-gnuabi64",
     ],
 }
@@ -165,7 +167,7 @@ def format_entry(os, target, compiler, rust, mode, features):
         sources_with_dups = sum([get_sources_for_package(p) for p in packages],[])
         sources = sorted(list(set(sources_with_dups)))
         dist = "trusty"
-        if arch in ["mips64el"]:
+        if arch in ["mips64", "mips64el"]:
             dist = "bionic"
         template += """
       dist: %s""" % dist
@@ -216,6 +218,9 @@ def get_linux_packages_to_install(target, compiler, arch, kcov):
     if target == "arm-unknown-linux-gnueabihf":
         packages += ["gcc-arm-linux-gnueabihf",
                      "libc6-dev-armhf-cross"]
+    if target == "mips64-unknown-linux-gnuabi64":
+        packages += ["gcc-mips64-linux-gnuabi64",
+                      "libc6-dev-mips64-cross"]
     if target == "mips64el-unknown-linux-gnuabi64":
         packages += ["gcc-mips64el-linux-gnuabi64",
                       "libc6-dev-mips64el-cross"]
@@ -246,7 +251,7 @@ def get_linux_packages_to_install(target, compiler, arch, kcov):
                          "libdw-dev",
                          "binutils-dev",
                          "libiberty-dev"]
-    elif arch not in ["aarch64", "arm", "armv7", "mips64el"]:
+    elif arch not in ["aarch64", "arm", "armv7", "mips64", "mips64el"]:
         raise ValueError("unexpected arch: %s" % arch)
 
     return packages

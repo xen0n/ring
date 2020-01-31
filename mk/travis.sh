@@ -37,6 +37,9 @@ armv7-linux-androideabi)
   # export ANDROID_SYSTEM_IMAGE="system-images;android-18;default;armeabi-v7a"
   export ANDROID_ABI=armeabi-v7a
   ;;
+mips64-unknown-linux-gnuabi64)
+  export QEMU_LD_PREFIX=/usr/mips64-linux-gnuabi64
+  ;;
 mips64el-unknown-linux-gnuabi64)
   export QEMU_LD_PREFIX=/usr/mips64el-linux-gnuabi64
   ;;
